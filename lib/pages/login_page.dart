@@ -13,25 +13,28 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  String role = 'user'; // default role
-
   void login() {
-    final username = usernameController.text;
+    final username = usernameController.text.trim();
     final password = passwordController.text;
 
-    if (role == 'admin' && username == 'admin' && password == 'admin123') {
+    if (username == 'admin' && password == 'admin123') {
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (_) => const AdminPage()));
-    } else if (role == 'user') {
+        context,
+        MaterialPageRoute(builder: (_) => const AdminPage()),
+      );
+    } else if (username == 'user' && password == 'user123') {
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (_) => const FormPage()));
+        context,
+        MaterialPageRoute(builder: (_) => const FormPage()),
+      );
     } else {
       showDialog(
-          context: context,
-          builder: (_) => const AlertDialog(
-                title: Text('Login Gagal'),
-                content: Text('Username atau password salah.'),
-              ));
+        context: context,
+        builder: (_) => const AlertDialog(
+          title: Text('Login Gagal'),
+          content: Text('Username atau password salah.'),
+        ),
+      );
     }
   }
 
@@ -45,14 +48,6 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              DropdownButton<String>(
-                value: role,
-                onChanged: (value) => setState(() => role = value!),
-                items: const [
-                  DropdownMenuItem(value: 'user', child: Text('User')),
-                  DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                ],
-              ),
               TextField(
                 controller: usernameController,
                 decoration: const InputDecoration(labelText: 'Username'),
@@ -63,7 +58,10 @@ class _LoginPageState extends State<LoginPage> {
                 obscureText: true,
               ),
               const SizedBox(height: 20),
-              ElevatedButton(onPressed: login, child: const Text('Login')),
+              ElevatedButton(
+                onPressed: login,
+                child: const Text('Login'),
+              ),
             ],
           ),
         ),

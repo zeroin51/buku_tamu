@@ -16,9 +16,11 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
-  List<Map<String, dynamic>> tamuList = [];
+  List<Map<String, dynamic>> allData = [];
+  List<Map<String, dynamic>> filteredData = [];
   DateTime? startDate;
   DateTime? endDate;
+  String searchQuery = "";
 
   @override
   void initState() {
@@ -48,7 +50,19 @@ class _AdminPageState extends State<AdminPage> {
     );
 
     setState(() {
-      tamuList = data;
+      allData = data;
+      applyFilter();
+    });
+  }
+
+  void applyFilter() {
+    setState(() {
+      filteredData = allData.where((item) {
+        final q = searchQuery.toLowerCase();
+        return item['nama'].toString().toLowerCase().contains(q) ||
+            item['nik'].toString().toLowerCase().contains(q) ||
+            item['perusahaan'].toString().toLowerCase().contains(q);
+      }).toList();
     });
   }
 
@@ -72,7 +86,6 @@ class _AdminPageState extends State<AdminPage> {
     final excel = Excel.createExcel();
     final Sheet sheet = excel['Data Tamu'];
 
-    // Tambahkan header
     sheet.appendRow([
       'Nama',
       'No. Telepon',
@@ -87,8 +100,7 @@ class _AdminPageState extends State<AdminPage> {
       'Jam Keluar',
     ]);
 
-    // Tambahkan data
-    for (var item in tamuList) {
+    for (var item in filteredData) {
       sheet.appendRow([
         item['nama'],
         item['no_telepon'],
@@ -104,27 +116,20 @@ class _AdminPageState extends State<AdminPage> {
       ]);
     }
 
-    // Cek & minta izin akses
-    final status = await Permission.storage.request();
-    if (!status.isGranted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Izin akses penyimpanan ditolak")),
-      );
-      return;
-    }
+    final downloadsDir = Directory("${Platform.environment['USERPROFILE']}\\Downloads");
+    final now = DateTime.now();
+    final formattedDate = DateFormat('ddMMyyyy_HHmmss').format(now);
+    final file = File('${downloadsDir.path}\\export_tamu_$formattedDate.xlsx');
 
-    final directory = await getExternalStorageDirectory();
-    final path = directory!.path;
-    final file = File('$path/export_tamu.xlsx');
     file.writeAsBytesSync(excel.encode()!);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Data berhasil diexport ke: $path")),
+      SnackBar(content: Text("Data berhasil diexport ke: ${file.path}")),
     );
   }
 
   Widget buildTable() {
-    if (tamuList.isEmpty) {
+    if (filteredData.isEmpty) {
       return const Center(child: Text('Tidak ada data'));
     }
 
@@ -145,7 +150,7 @@ class _AdminPageState extends State<AdminPage> {
           DataColumn(label: Text('Tgl Keluar')),
           DataColumn(label: Text('Jam Keluar')),
         ],
-        rows: tamuList.map((item) {
+        rows: filteredData.map((item) {
           return DataRow(cells: [
             DataCell(Text(item['nama'] ?? '')),
             DataCell(Text(item['no_telepon'] ?? '')),
@@ -191,6 +196,21 @@ class _AdminPageState extends State<AdminPage> {
       body: Column(
         children: [
           Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: 'Cari tamu (nama / NIK / perusahaan)',
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                  applyFilter();
+                });
+              },
+            ),
+          ),
+          Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
@@ -201,7 +221,7 @@ class _AdminPageState extends State<AdminPage> {
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton.icon(
-                  onPressed: tamuList.isEmpty ? null : exportToExcel,
+                  onPressed: filteredData.isEmpty ? null : exportToExcel,
                   icon: const Icon(Icons.download),
                   label: const Text('Export ke Excel'),
                 ),
