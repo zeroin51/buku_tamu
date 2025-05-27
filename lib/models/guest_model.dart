@@ -2,7 +2,7 @@ class GuestModel {
   final String? id; // ubah dari int? ke String?
   final String nama;
   final String noTelepon;
-  final String nik;
+  final String identitas;
   final String noKendaraan;
   final String perusahaan;
   final String bertemuDengan;
@@ -16,7 +16,7 @@ class GuestModel {
     this.id,
     required this.nama,
     required this.noTelepon,
-    required this.nik,
+    required this.identitas,
     required this.noKendaraan,
     required this.perusahaan,
     required this.bertemuDengan,
@@ -32,7 +32,7 @@ class GuestModel {
       id: map['id']?.toString(), // pastikan id dikonversi ke String
       nama: map['nama'] ?? '',
       noTelepon: map['no_telepon'] ?? '',
-      nik: map['nik'] ?? '',
+      identitas: map['identitas'] ?? '',
       noKendaraan: map['no_kendaraan'] ?? '',
       perusahaan: map['perusahaan'] ?? '',
       bertemuDengan: map['bertemu_dengan'] ?? '',
@@ -49,7 +49,7 @@ class GuestModel {
       'id': id,
       'nama': nama,
       'no_telepon': noTelepon,
-      'nik': nik,
+      'identitas': identitas,
       'no_kendaraan': noKendaraan,
       'perusahaan': perusahaan,
       'bertemu_dengan': bertemuDengan,

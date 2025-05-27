@@ -44,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(title: const Text('Login Buku Tamu')),
       body: Center(
         child: SizedBox(
-          width: 400,
+          width: 600,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -57,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: login,
                 child: const Text('Login'),

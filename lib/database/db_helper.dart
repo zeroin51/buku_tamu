@@ -19,7 +19,7 @@ class DBHelper {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nama TEXT NOT NULL,
             no_telepon TEXT NOT NULL,
-            nik TEXT NOT NULL,
+            identitas TEXT NOT NULL,
             no_kendaraan TEXT,
             perusahaan TEXT,
             bertemu_dengan TEXT,

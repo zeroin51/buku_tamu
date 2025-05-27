@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:excel/excel.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../database/db_helper.dart';
 import 'login_page.dart';
@@ -37,8 +35,8 @@ class _AdminPageState extends State<AdminPage> {
     if (startDate != null && endDate != null) {
       whereClause = 'tanggal_masuk BETWEEN ? AND ?';
       whereArgs = [
-        DateFormat('yyyy-MM-dd').format(startDate!),
-        DateFormat('yyyy-MM-dd').format(endDate!)
+        DateFormat('dd-MM-yyyy').format(startDate!),
+        DateFormat('dd-MM-yyyy').format(endDate!)
       ];
     }
 
@@ -60,7 +58,7 @@ class _AdminPageState extends State<AdminPage> {
       filteredData = allData.where((item) {
         final q = searchQuery.toLowerCase();
         return item['nama'].toString().toLowerCase().contains(q) ||
-            item['nik'].toString().toLowerCase().contains(q) ||
+            item['identitas'].toString().toLowerCase().contains(q) ||
             item['perusahaan'].toString().toLowerCase().contains(q);
       }).toList();
     });
@@ -89,7 +87,7 @@ class _AdminPageState extends State<AdminPage> {
     sheet.appendRow([
       'Nama',
       'No. Telepon',
-      'NIK',
+      'Identitas',
       'No. Kendaraan',
       'Perusahaan',
       'Bertemu Dengan',
@@ -104,7 +102,7 @@ class _AdminPageState extends State<AdminPage> {
       sheet.appendRow([
         item['nama'],
         item['no_telepon'],
-        item['nik'],
+        item['identitas'],
         item['no_kendaraan'],
         item['perusahaan'],
         item['bertemu_dengan'],
@@ -140,7 +138,7 @@ class _AdminPageState extends State<AdminPage> {
         columns: const [
           DataColumn(label: Text('Nama')),
           DataColumn(label: Text('No. Telepon')),
-          DataColumn(label: Text('NIK')),
+          DataColumn(label: Text('Identitas')),
           DataColumn(label: Text('No. Kendaraan')),
           DataColumn(label: Text('Perusahaan')),
           DataColumn(label: Text('Bertemu')),
@@ -154,7 +152,7 @@ class _AdminPageState extends State<AdminPage> {
           return DataRow(cells: [
             DataCell(Text(item['nama'] ?? '')),
             DataCell(Text(item['no_telepon'] ?? '')),
-            DataCell(Text(item['nik'] ?? '')),
+            DataCell(Text(item['identitas'] ?? '')),
             DataCell(Text(item['no_kendaraan'] ?? '')),
             DataCell(Text(item['perusahaan'] ?? '')),
             DataCell(Text(item['bertemu_dengan'] ?? '')),
@@ -199,7 +197,7 @@ class _AdminPageState extends State<AdminPage> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
             child: TextField(
               decoration: const InputDecoration(
-                hintText: 'Cari tamu (nama / NIK / perusahaan)',
+                hintText: 'Cari tamu (Nama / Identitas / Perusahaan)',
                 prefixIcon: Icon(Icons.search),
               ),
               onChanged: (value) {

@@ -15,7 +15,7 @@ class _FormPageState extends State<FormPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController namaController = TextEditingController();
   final TextEditingController noTeleponController = TextEditingController();
-  final TextEditingController nikController = TextEditingController();
+  final TextEditingController identitasController = TextEditingController();
   final TextEditingController noKendaraanController = TextEditingController();
   final TextEditingController perusahaanController = TextEditingController();
   final TextEditingController bertemuDenganController = TextEditingController();
@@ -37,7 +37,7 @@ class _FormPageState extends State<FormPage> {
 
   Future<void> fetchDataForToday() async {
     final now = DateTime.now();
-    final today = DateFormat('yyyy-MM-dd').format(now);
+    final today = DateFormat('dd-MM-yyyy').format(now);
     fetchData(today, today);
   }
 
@@ -59,7 +59,7 @@ class _FormPageState extends State<FormPage> {
       final data = {
         'nama': namaController.text,
         'no_telepon': noTeleponController.text,
-        'nik': nikController.text,
+        'identitas': identitasController.text,
         'no_kendaraan': noKendaraanController.text,
         'perusahaan': perusahaanController.text,
         'bertemu_dengan': bertemuDenganController.text,
@@ -92,7 +92,7 @@ class _FormPageState extends State<FormPage> {
   void clearControllers() {
     namaController.clear();
     noTeleponController.clear();
-    nikController.clear();
+    identitasController.clear();
     noKendaraanController.clear();
     perusahaanController.clear();
     bertemuDenganController.clear();
@@ -111,19 +111,29 @@ class _FormPageState extends State<FormPage> {
     );
 
     if (result != null) {
-      final start = DateFormat('yyyy-MM-dd').format(result.start);
-      final end = DateFormat('yyyy-MM-dd').format(result.end);
+      final start = DateFormat('dd-MM-yyyy').format(result.start);
+      final end = DateFormat('dd-MM-yyyy').format(result.end);
       filterRange = result;
       fetchData(start, end);
     }
   }
+
+  Future<void> hapusData(int id) async {
+    final db = await DBHelper.initDb();
+    await db.delete('tamu', where: 'id = ?', whereArgs: [id]);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Data berhasil dihapus')),
+    );
+    fetchDataForToday();
+  }
+
 
   void editData(Map<String, dynamic> item) {
     setState(() {
       editingId = item['id'];
       namaController.text = item['nama'] ?? '';
       noTeleponController.text = item['no_telepon'] ?? '';
-      nikController.text = item['nik'] ?? '';
+      identitasController.text = item['identitas'] ?? '';
       noKendaraanController.text = item['no_kendaraan'] ?? '';
       perusahaanController.text = item['perusahaan'] ?? '';
       bertemuDenganController.text = item['bertemu_dengan'] ?? '';
@@ -153,7 +163,7 @@ class _FormPageState extends State<FormPage> {
           lastDate: DateTime(2100),
         );
         if (picked != null) {
-          controller.text = DateFormat('yyyy-MM-dd').format(picked);
+          controller.text = DateFormat('dd-MM-yyyy').format(picked);
         }
       },
     );
@@ -164,6 +174,44 @@ class _FormPageState extends State<FormPage> {
       controller: controller,
       readOnly: true,
       decoration: InputDecoration(labelText: label),
+      onTap: () async {
+        final picked = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.now(),
+        );
+        if (picked != null) {
+          controller.text = picked.format(context);
+        }
+      },
+    );
+  }
+
+  Widget buildDateFieldWithValidator(String label, TextEditingController controller) {
+    return TextFormField(
+      controller: controller,
+      readOnly: true,
+      decoration: InputDecoration(labelText: label),
+      validator: (val) => val!.isEmpty ? 'Wajib diisi' : null,
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: DateTime.tryParse(controller.text) ?? DateTime.now(),
+          firstDate: DateTime(2023),
+          lastDate: DateTime(2100),
+        );
+        if (picked != null) {
+          controller.text = DateFormat('dd-MM-yyyy').format(picked);
+        }
+      },
+    );
+  }
+
+  Widget buildTimeFieldWithValidator(String label, TextEditingController controller) {
+    return TextFormField(
+      controller: controller,
+      readOnly: true,
+      decoration: InputDecoration(labelText: label),
+      validator: (val) => val!.isEmpty ? 'Wajib diisi' : null,
       onTap: () async {
         final picked = await showTimePicker(
           context: context,
@@ -192,7 +240,7 @@ class _FormPageState extends State<FormPage> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(10),
         child: Column(
           children: [
             Form(
@@ -200,34 +248,46 @@ class _FormPageState extends State<FormPage> {
               child: Column(
                 children: [
                   TextFormField(
-                      controller: namaController,
-                      decoration: const InputDecoration(labelText: 'Nama'),
-                      validator: (val) =>
-                          val!.isEmpty ? 'Wajib diisi' : null),
+                    controller: namaController,
+                    decoration: const InputDecoration(labelText: 'Nama'),
+                    validator: (val) => val!.isEmpty ? 'Wajib diisi' : null,
+                  ),
                   TextFormField(
-                      controller: noTeleponController,
-                      decoration: const InputDecoration(labelText: 'No Telepon'),
-                      keyboardType: TextInputType.phone),
+                    controller: noTeleponController,
+                    decoration: const InputDecoration(labelText: 'No Telepon'),
+                    keyboardType: TextInputType.phone,
+                    validator: (val) => val!.isEmpty ? 'Wajib diisi' : null,
+                  ),
                   TextFormField(
-                      controller: nikController,
-                      decoration: const InputDecoration(labelText: 'NIK')),
+                    controller: identitasController,
+                    decoration: const InputDecoration(labelText: 'Identitas'),
+                    validator: (val) => val!.isEmpty ? 'Wajib diisi' : null,
+                  ),
                   TextFormField(
-                      controller: noKendaraanController,
-                      decoration: const InputDecoration(labelText: 'No Kendaraan')),
+                    controller: noKendaraanController,
+                    decoration: const InputDecoration(labelText: 'No Kendaraan'),
+                    validator: (val) => val!.isEmpty ? 'Wajib diisi' : null,
+                  ),
                   TextFormField(
-                      controller: perusahaanController,
-                      decoration: const InputDecoration(labelText: 'Perusahaan')),
+                    controller: perusahaanController,
+                    decoration: const InputDecoration(labelText: 'Perusahaan'),
+                    validator: (val) => val!.isEmpty ? 'Wajib diisi' : null,
+                  ),
                   TextFormField(
-                      controller: bertemuDenganController,
-                      decoration: const InputDecoration(labelText: 'Bertemu Dengan')),
+                    controller: bertemuDenganController,
+                    decoration: const InputDecoration(labelText: 'Bertemu Dengan'),
+                    validator: (val) => val!.isEmpty ? 'Wajib diisi' : null,
+                  ),
                   TextFormField(
-                      controller: keperluanController,
-                      decoration: const InputDecoration(labelText: 'Keperluan')),
-                  buildDateField('Tanggal Masuk', tanggalMasukController),
-                  buildTimeField('Jam Masuk', jamMasukController),
+                    controller: keperluanController,
+                    decoration: const InputDecoration(labelText: 'Keperluan'),
+                    validator: (val) => val!.isEmpty ? 'Wajib diisi' : null,
+                  ),
+                  buildDateFieldWithValidator('Tanggal Masuk', tanggalMasukController),
+                  buildTimeFieldWithValidator('Jam Masuk', jamMasukController),
                   buildDateField('Tanggal Keluar', tanggalKeluarController),
                   buildTimeField('Jam Keluar', jamKeluarController),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 15),
                   ElevatedButton(
                     onPressed: simpanAtauUpdateData,
                     child: Text(editingId == null ? 'Simpan' : 'Update'),
@@ -261,25 +321,75 @@ class _FormPageState extends State<FormPage> {
               ],
             ),
             const SizedBox(height: 10),
-            DataTable(
-              columns: const [
-                DataColumn(label: Text('Nama')),
-                DataColumn(label: Text('Tanggal Masuk')),
-                DataColumn(label: Text('Jam Masuk')),
-                DataColumn(label: Text('Aksi')),
-              ],
-              rows: tamuList.map((item) {
-                return DataRow(cells: [
-                  DataCell(Text(item['nama'] ?? '')),
-                  DataCell(Text(item['tanggal_masuk'] ?? '')),
-                  DataCell(Text(item['jam_masuk'] ?? '')),
-                  DataCell(IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () => editData(item),
-                  )),
-                ]);
-              }).toList(),
-            )
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: const [
+                  DataColumn(label: Text('Nama')),
+                  DataColumn(label: Text('No Telepon')),
+                  DataColumn(label: Text('Identitas')),
+                  DataColumn(label: Text('No Kendaraan')),
+                  DataColumn(label: Text('Perusahaan')),
+                  DataColumn(label: Text('Bertemu Dengan')),
+                  DataColumn(label: Text('Keperluan')),
+                  DataColumn(label: Text('Tanggal Masuk')),
+                  DataColumn(label: Text('Jam Masuk')),
+                  DataColumn(label: Text('Tanggal Keluar')),
+                  DataColumn(label: Text('Jam Keluar')),
+                  DataColumn(label: Text('Aksi')),
+                ],
+                rows: tamuList.map((item) {
+                  return DataRow(cells: [
+                    DataCell(Text(item['nama'] ?? '')),
+                    DataCell(Text(item['no_telepon'] ?? '')),
+                    DataCell(Text(item['identitas'] ?? '')),
+                    DataCell(Text(item['no_kendaraan'] ?? '')),
+                    DataCell(Text(item['perusahaan'] ?? '')),
+                    DataCell(Text(item['bertemu_dengan'] ?? '')),
+                    DataCell(Text(item['keperluan'] ?? '')),
+                    DataCell(Text(item['tanggal_masuk'] ?? '')),
+                    DataCell(Text(item['jam_masuk'] ?? '')),
+                    DataCell(Text(item['tanggal_keluar'] ?? '')),
+                    DataCell(Text(item['jam_keluar'] ?? '')),
+                    DataCell(Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => editData(item),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          color: Colors.red,
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Konfirmasi Hapus'),
+                                content: const Text('Apakah Anda yakin ingin menghapus data ini?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('Batal'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    child: const Text('Hapus'),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true) {
+                              hapusData(item['id']);
+                            }
+                          },
+                        ),
+                      ],
+                    )),
+                  ]);
+                }).toList(),
+              ),
+            ),
           ],
         ),
       ),
