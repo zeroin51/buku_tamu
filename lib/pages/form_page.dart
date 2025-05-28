@@ -27,6 +27,7 @@ class _FormPageState extends State<FormPage> {
 
   List<Map<String, dynamic>> tamuList = [];
   DateTimeRange? filterRange;
+  String searchQuery = "";
   int? editingId;
 
   @override
@@ -38,7 +39,8 @@ class _FormPageState extends State<FormPage> {
   Future<void> fetchDataForToday() async {
     final now = DateTime.now();
     final today = DateFormat('dd-MM-yyyy').format(now);
-    fetchData(today, today);
+    await fetchData(today, today);
+    setState(() {}); // <-- Tambahkan ini agar UI refresh
   }
 
   Future<void> fetchData(String fromDate, String toDate) async {
@@ -50,6 +52,16 @@ class _FormPageState extends State<FormPage> {
     setState(() {
       tamuList = data;
     });
+  }
+
+  List<Map<String, dynamic>> get filteredTamuList {
+    if (searchQuery.isEmpty) return tamuList;
+    final q = searchQuery.toLowerCase();
+    return tamuList.where((item) {
+      return (item['nama'] ?? '').toString().toLowerCase().contains(q) ||
+            (item['identitas'] ?? '').toString().toLowerCase().contains(q) ||
+            (item['perusahaan'] ?? '').toString().toLowerCase().contains(q);
+    }).toList();
   }
 
   Future<void> simpanAtauUpdateData() async {
@@ -320,6 +332,19 @@ class _FormPageState extends State<FormPage> {
                     : 'Filter: ${DateFormat('dd/MM/yyyy').format(filterRange!.start)} - ${DateFormat('dd/MM/yyyy').format(filterRange!.end)}')
               ],
             ),
+            TextField(
+              decoration: const InputDecoration(
+                hintText: 'Cari tamu (Nama / Identitas / Perusahaan)',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
+            ),
+
             const SizedBox(height: 10),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -338,7 +363,7 @@ class _FormPageState extends State<FormPage> {
                   DataColumn(label: Text('Jam Keluar')),
                   DataColumn(label: Text('Aksi')),
                 ],
-                rows: tamuList.map((item) {
+                rows: filteredTamuList.map((item) {
                   return DataRow(cells: [
                     DataCell(Text(item['nama'] ?? '')),
                     DataCell(Text(item['no_telepon'] ?? '')),
